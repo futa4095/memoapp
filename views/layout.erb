@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/memoapp.css">
+  <title>メモアプリ</title>
+</head>
+
+<body>
+  <header class="main-header">
+    <h1><a href="/">メモアプリ</a></h1>
+    <nav>
+      <a href="/memos/new">メモを追加</a>
+    </nav>
+  </header>
+  <article class="main-article">
+    <%= yield %>
+  </article>
+</body>
+
+</html>
