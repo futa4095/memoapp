@@ -2,16 +2,12 @@
 
 require 'sinatra'
 require 'json'
-require 'securerandom'
+require './lib/memo_store'
 
 MEMO_FILE = './memo.dat'
 DEFAULT_HEADERS = { 'Content-Security-Policy' => "default-src 'self'" }.freeze
 
-memos = if File.exist?(MEMO_FILE)
-          File.open(MEMO_FILE) { |f| JSON.parse(f.read) }
-        else
-          {}
-        end
+memos = MemoStore.new
 
 helpers do
   include Rack::Utils
@@ -27,7 +23,7 @@ get '/' do
 end
 
 get '/memos' do
-  @memos = memos
+  @memos = memos.list
   erb :top
 end
 
@@ -37,41 +33,32 @@ end
 
 post '/memos' do
   new_memo = { 'title' => params[:title], 'body' => params[:body] }
-  id = SecureRandom.uuid
-  memos[id] = new_memo
-  File.open(MEMO_FILE, 'w') do |f|
-    JSON.dump(memos, f)
-  end
+  memos.add(new_memo)
   redirect to('/memos')
 end
 
 get '/memos/:id' do |id|
-  pass unless memos.key?(id)
-  @id = id
-  @memo = memos[id]
+  pass unless memos.key?(id: id)
+  @memo = memos.find(id: id)[0]
   erb :show
 end
 
 get '/memos/:id/edit' do |id|
-  pass unless memos.key?(id)
-  @id = id
-  @memo = memos[id]
+  pass unless memos.key?(id: id)
+  @memo = memos.find(id: id)[0]
   erb :edit
 end
 
 patch '/memos/:id' do |id|
-  pass unless memos.key?(id)
-  memo = { 'title' => params[:title], 'body' => params[:body] }
-  memos[id] = memo
-  File.open(MEMO_FILE, 'w') do |f|
-    JSON.dump(memos, f)
-  end
+  pass unless memos.key?(id: id)
+  memo = { 'id' => id, 'title' => params[:title], 'body' => params[:body] }
+  memos.update(memo)
   redirect to('/memos')
 end
 
 delete '/memos/:id' do |id|
-  pass unless memos.key?(id)
-  memos.delete(id)
+  pass unless memos.key?(id: id)
+  memos.remove(id: id)
   redirect to('/memos')
 end
 
